@@ -27,7 +27,7 @@ A Model Context Protocol (MCP) server for accessing Dedao (得到) learning plat
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone the repository
-git clone https://github.com/yourusername/taibai.git
+git clone https://github.com/terry-li-hm/taibai.git
 cd taibai
 
 # Install dependencies
