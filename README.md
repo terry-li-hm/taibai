@@ -8,6 +8,7 @@ A Model Context Protocol (MCP) server for accessing Dedao (得到) learning plat
 - 📚 Access your purchased Dedao courses library  
 - 📝 Export content as Markdown, PDF, or MP3
 - 🔗 Seamless Obsidian vault integration
+- 🔄 Automatic version detection and update notifications
 
 ## Prerequisites
 
@@ -87,6 +88,7 @@ dedao_login(qrcode=True)
 
 ### Available MCP Tools
 
+- `dedao_version` - Check dedao-dl version and update availability
 - `dedao_login` - Authenticate with Dedao platform
 - `dedao_list_courses` - List all purchased courses  
 - `dedao_course_details` - Get course information
@@ -97,6 +99,9 @@ dedao_login(qrcode=True)
 ### Example Usage in Claude
 
 ```python
+# Check dedao-dl version
+dedao_version()
+
 # List your courses
 dedao_list_courses()
 

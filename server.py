@@ -3,17 +3,20 @@
 Taibai MCP Server - Dedao learning platform integration via dedao-dl
 """
 
+import json
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
 from typing import Literal
 
 from fastmcp import FastMCP
+from packaging import version
 from pydantic import BaseModel, Field
 
 # Initialize MCP server
-mcp = FastMCP("taibai", version="0.2.0")
+mcp = FastMCP("taibai", version="0.3.0")
 
 # Configuration
 HOME = Path.home()
@@ -64,16 +67,106 @@ class DownloadArticleArgs(BaseModel):
     output_dir: str | None = Field(None, description="Output directory path")
 
 
+class VersionInfo(BaseModel):
+    """Version information model"""
+    installed: str | None = Field(None, description="Installed dedao-dl version")
+    latest: str | None = Field(None, description="Latest available version")
+    update_available: bool = Field(False, description="Whether update is available")
+    update_command: str | None = Field(None, description="Command to update")
+
+
 
 
 # Helper functions
 def check_dedao_dl() -> bool:
     """Check if dedao-dl is installed"""
     try:
-        subprocess.run(["dedao-dl", "--version"], capture_output=True, check=True)
+        subprocess.run(["dedao-dl", "--help"], capture_output=True, check=True)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
+
+
+def get_dedao_dl_version() -> str | None:
+    """Get installed dedao-dl version using go version command"""
+    try:
+        # Find dedao-dl binary path
+        result = subprocess.run(
+            ["which", "dedao-dl"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        binary_path = result.stdout.strip()
+        
+        # Get version info from Go binary
+        result = subprocess.run(
+            ["go", "version", "-m", binary_path],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        # Extract version from output
+        for line in result.stdout.split('\n'):
+            if 'mod\tgithub.com/yann0917/dedao-dl' in line:
+                match = re.search(r'v(\d+\.\d+\.\d+)', line)
+                if match:
+                    return match.group(1)
+        return None
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+def get_latest_dedao_dl_version() -> str | None:
+    """Get latest dedao-dl version from GitHub releases"""
+    try:
+        result = subprocess.run(
+            ["gh", "api", "repos/yann0917/dedao-dl/releases/latest"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        # Extract tag_name from JSON response
+        data = json.loads(result.stdout)
+        tag = data.get('tag_name', '')
+        if tag.startswith('v'):
+            return tag[1:]  # Remove 'v' prefix
+        return None
+    except (subprocess.CalledProcessError, FileNotFoundError, json.JSONDecodeError):
+        return None
+
+
+def check_version_compatibility() -> tuple[bool, str]:
+    """Check if dedao-dl version is up to date"""
+    installed = get_dedao_dl_version()
+    latest = get_latest_dedao_dl_version()
+    
+    if not installed:
+        return False, "Unable to determine installed dedao-dl version"
+    
+    if not latest:
+        # Can't check latest, assume compatible
+        return True, f"Using dedao-dl v{installed}"
+    
+    try:
+        from packaging import version
+        if version.parse(installed) < version.parse(latest):
+            return True, (
+                f"dedao-dl v{installed} is installed (latest: v{latest})\n"
+                f"Update with: go install github.com/yann0917/dedao-dl@latest"
+            )
+        else:
+            return True, f"Using dedao-dl v{installed} (up to date)"
+    except ImportError:
+        # Fallback to string comparison if packaging not available
+        if installed != latest:
+            return True, (
+                f"dedao-dl v{installed} is installed (latest: v{latest})\n"
+                f"Update with: go install github.com/yann0917/dedao-dl@latest"
+            )
+        return True, f"Using dedao-dl v{installed} (up to date)"
 
 
 def check_dedao_auth() -> bool:
@@ -154,6 +247,16 @@ def move_downloaded_files(target_dir: Path) -> None:
 
 
 # MCP Tools
+@mcp.tool()
+def dedao_version() -> str:
+    """Check dedao-dl version and update status"""
+    if not check_dedao_dl():
+        return "dedao-dl is not installed. Install with: go install github.com/yann0917/dedao-dl@latest"
+    
+    compatible, message = check_version_compatibility()
+    return message
+
+
 @mcp.tool()
 def dedao_login(args: LoginArgs) -> str:
     """Login to Dedao platform via QR code or cookie"""
@@ -256,5 +359,11 @@ def dedao_download_article(args: DownloadArticleArgs) -> str:
 
 
 if __name__ == "__main__":
+    # Check version compatibility on startup
+    if check_dedao_dl():
+        compatible, message = check_version_compatibility()
+        if message:
+            print(f"[INFO] {message}", flush=True)
+    
     # Run the MCP server
     mcp.run()

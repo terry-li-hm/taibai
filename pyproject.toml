@@ -1,6 +1,6 @@
 [project]
 name = "taibai"
-version = "0.2.0"
+version = "0.3.0"
 description = "MCP server for Dedao learning platform integration via dedao-dl"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -11,6 +11,7 @@ license = { text = "MIT" }
 dependencies = [
     "fastmcp>=0.1.0",
     "pydantic>=2.0.0",
+    "packaging>=23.0",
 ]
 
 [project.optional-dependencies]
