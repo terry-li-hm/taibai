@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+*.env
+
+# Config with authentication
+config.json
+
+# Dedao data
+~/.taibai/
+output/
+dedao-content/
+*.pdf
+*.mp3
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Build artifacts
+*.spec
+
+# TypeScript/Node (legacy)
+node_modules/
+dist/
+*.log
+package-lock.json
+yarn.lock
+
+# Temporary files
+*.tmp
+*.bak
+test_server.py
+
+# Archive
+archive_typescript/
