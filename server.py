@@ -358,7 +358,8 @@ def dedao_download_article(args: DownloadArticleArgs) -> str:
 
 
 
-if __name__ == "__main__":
+def main():
+    """Main entry point for the MCP server"""
     # Check version compatibility on startup
     if check_dedao_dl():
         compatible, message = check_version_compatibility()
@@ -367,3 +368,6 @@ if __name__ == "__main__":
     
     # Run the MCP server
     mcp.run()
+
+if __name__ == "__main__":
+    main()
